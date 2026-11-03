@@ -381,7 +381,7 @@ body.lab .dock{background:rgba(10,14,22,.96)}
     <div class="sec">
       <div class="sec-h"><span class="lbl">About Manwë</span></div>
       <p class="muted" style="margin:0 0 12px;line-height:1.5">Built on free public weather data. Official warnings come straight from the National Weather Service and can't be turned off. Anything Manwë works out on its own is labeled <span class="chip unofficial">Unofficial · estimate</span>.</p>
-      <dl class="kv"><dt>Forecasts</dt><dd>Open-Meteo (NOAA HRRR, GFS)</dd><dt>Warnings</dt><dd>National Weather Service</dd><dt>Radar</dt><dd>NOAA NEXRAD · Iowa Mesonet</dd><dt>Severe outlook</dt><dd>Storm Prediction Center</dd><dt>Tropics</dt><dd>National Hurricane Center</dd><dt>Space weather</dt><dd>NOAA SWPC</dd><dt>Routes</dt><dd>OSRM · OpenStreetMap</dd><dt>Map</dt><dd>CARTO · OpenStreetMap</dd></dl>
+      <dl class="kv"><dt>Forecasts</dt><dd>Open-Meteo (NOAA HRRR, GFS)</dd><dt>Warnings</dt><dd>National Weather Service</dd><dt>Radar</dt><dd>NOAA NEXRAD · Iowa Mesonet</dd><dt>Severe outlook</dt><dd>Storm Prediction Center</dd><dt>Tropics</dt><dd>National Hurricane Center</dd><dt>Space weather</dt><dd>NOAA SWPC</dd><dt>Routes</dt><dd>OSRM · OpenStreetMap</dd><dt>Map</dt><dd>Esri · OpenStreetMap</dd></dl>
       <p class="note" style="margin:14px 0 0"><b>Safety first.</b> For real decisions, follow the National Weather Service, the National Hurricane Center and local officials.</p>
     </div>
   </section>
@@ -959,9 +959,9 @@ function initMini(){
   const p=places[active];
   if(!state.live||!window.L){$("#miniMap").innerHTML=`<div class="map-off">Live radar loads in the installed app.</div>`;$("#miniLbl").textContent="Radar";return}
   if(!mini){mini=L.map("miniMap",{zoomControl:false,attributionControl:false,dragging:false,scrollWheelZoom:false,doubleClickZoom:false,touchZoom:false,boxZoom:false,keyboard:false});
-    L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png",{subdomains:"abcd"}).addTo(mini);
+    L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}",{maxNativeZoom:16}).addTo(mini);
     miniLayer=L.tileLayer(radarURL(0),{opacity:.8}).addTo(mini);
-    L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_only_labels/{z}/{x}/{y}{r}.png",{subdomains:"abcd",pane:"shadowPane"}).addTo(mini);
+    L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}",{maxNativeZoom:16,pane:"shadowPane"}).addTo(mini);
     miniMarker=L.circleMarker([p.lat,p.lon],{radius:7,color:"#fff",weight:3,fillColor:"#ffd36e",fillOpacity:1}).addTo(mini);
     mini.on("click",()=>location.hash="lab")}
   else{miniLayer.setUrl(radarURL(0,Date.now()))}
@@ -1041,8 +1041,8 @@ async function initLab(){
   if(!state.live||!window.L){$("#map").innerHTML=`<div class="map-off"><div><b>Live radar loads in the installed app.</b><br>This preview can't reach NOAA's servers.</div></div>`;setLegend("dbz",`US radar · birds and bugs removed <small>dBZ</small>`,"NOAA MRMS quality-controlled radar: non-weather echoes such as migrating birds, insects and ground clutter are filtered out.");$("#lgAgo").textContent="Preview only";$("#frameTime").textContent="Live in the installed app";renderOverlays();renderLearn();$("#pHurr").innerHTML=`<p class="muted" style="margin:0">Active storms load in the installed app.</p>`;return}
   const p=places[active];
   map=L.map("map",{zoomControl:false,attributionControl:true}).setView([p.lat,p.lon],6);
-  L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png",{subdomains:"abcd",maxZoom:12,attribution:"© OpenStreetMap © CARTO"}).addTo(map);
-  L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_only_labels/{z}/{x}/{y}{r}.png",{subdomains:"abcd",maxZoom:12,pane:"shadowPane"}).addTo(map);
+  L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}",{maxNativeZoom:16,maxZoom:12,attribution:"Map: Esri, HERE, Garmin, © OpenStreetMap"}).addTo(map);
+  L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}",{maxNativeZoom:16,maxZoom:12,pane:"shadowPane"}).addTo(map);
   here=L.circleMarker([p.lat,p.lon],{radius:7,color:"#fff",weight:3,fillColor:"#4d9fff",fillOpacity:1,pane:"shadowPane"}).addTo(map).bindTooltip(p.name);
   map.on("click",e=>pointPopup(e.latlng));map.on("moveend",updatePill);
   $("#frame").oninput=e=>{stopPlay();showFrame(+e.target.value)};
@@ -1255,7 +1255,7 @@ async function runTrip(fromQ,toQ,departMs){
        <button class="btn" id="tRecheck" style="margin-top:12px;width:100%">Recheck from my location</button></div>`;
     $("#tRecheck").onclick=()=>{if(!navigator.geolocation){toast("Location isn't available here");return}navigator.geolocation.getCurrentPosition(p=>{$("#tFrom").value=p.coords.latitude.toFixed(4)+","+p.coords.longitude.toFixed(4);setLeave(new Date(),true);runTrip($("#tFrom").value,$("#tTo").value.trim(),Date.now())},()=>toast("Location permission was declined"),{timeout:10000})};
     if(window.L){tripMap&&tripMap.remove();tripMap=L.map("tripMap",{zoomControl:false,attributionControl:true});
-      L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",{subdomains:"abcd",attribution:"Route: OSRM · © OpenStreetMap © CARTO"}).addTo(tripMap);
+      L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}",{maxNativeZoom:16,attribution:"Route: OSRM · Map: Esri, HERE, Garmin, © OpenStreetMap"}).addTo(tripMap);L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}",{maxNativeZoom:16,pane:"shadowPane"}).addTo(tripMap);
       for(let k=0;k<n-1;k++){const seg=coords.slice(now.p[k].ci,now.p[k+1].ci+1).map(c=>[c[1],c[0]]);L.polyline(seg,{color:now.p[k].c.c,weight:5,opacity:.95}).addTo(tripMap)}
       now.p.forEach(x=>L.circleMarker([x.lat,x.lon],{radius:x.k===0||x.k===n-1?9:6,color:"#fff",weight:2,fillColor:x.c.c,fillOpacity:1}).addTo(tripMap).bindTooltip(`${x.nm?x.nm.city:x.k===0?A.name:B.name} · ${tfmt(x.eta)}`));
       tripMap.fitBounds(coords.map(c=>[c[1],c[0]]),{padding:[24,24]})}
